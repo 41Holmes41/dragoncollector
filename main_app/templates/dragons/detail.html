@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1>Dragon Details</h1>
+
+<div class="row">
+  <div class="col s6">
+    <div class="card">
+      <div class="card-content">
+        <span class="card-title">{{ dragon.name }}</span>
+        <p>Breed: {{ dragon.breed }}</p>
+        <p>Description: {{ dragon.description }}</p>
+        {% if dragon.age > 0 %}
+          <p>Age: {{ dragon.age }}</p>
+        {% else %}
+          <p>Age: Kitten</p>
+        {% endif %}
+      </div>
+      <div class="card-action">
+        <a href="{% url 'dragons_update' dragon.id %}">Edit</a>
+        <a href="{% url 'dragons_delete' dragon.id %}">Delete</a>
+      </div>
+    </div>
+    {% for photo in dragon.photo_set.all %}
+    <img class="responsive-img card-panel" src="{{photo.url}}">
+  {% empty %}
+    <div class="card-panel teal-text center-align">No Photos Uploaded</div>
+  {% endfor %}
+
+  <form action="{% url 'add_photo' dragon.id %}" enctype="multipart/form-data" method="POST" class="card-panel">
+    {% csrf_token %}
+    <input type="file" name="photo-file">
+    <br><br>
+    <input type="submit" class="btn" value="Upload Photo">
+</form>
+  </div>
+  
+  <div class="col s6">
+    <form action="{% url 'add_burning' dragon.id %}" method="post">
+      {% csrf_token %}
+      {{ burning_form.as_p }}
+      <input type="submit" class="btn" value="Add Burning">
+    </form>
+    <table class="striped">
+      <thead>
+        <tr><th>Date</th><th>Town</th></tr>
+      </thead>
+      <tbody>
+        {% for burning in dragon.burning_set.all %}
+          <tr>
+            <td>{{burning.date}}</td>
+            <td>{{burning.get_town_display}}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<hr>
+<div class="row">
+  <div class="col s6">
+    <h3>{{ dragon.name }}'s Toys</h3>
+    {% if dragon.toys.count %}
+      {% for toy in dragon.toys.all %}
+        <div class="card">
+          <div class="card-content">
+            <span class="card-title">
+              A <span style="color: {{ toy.color }}">{{ toy.color }}</span> {{ toy.name }}
+            </span>
+          </div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <h5>No Toys :(</h5>
+    {% endif %}
+  </div>
+  <!-- Available toys will come after this line -->
+
+  <div class="col s6">
+      <h3>Available Toys</h3>
+      {% if toys.count %}
+        {% for toy in toys.all %}
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">
+                A <span style="color: {{ toy.color }}">{{ toy.color }}</span> {{ toy.name }}
+              </span>
+            </div>
+            <div class="card-action">
+              <form action="{% url 'assoc_toy' dragon.id toy.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn">Add</button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <h5>{{dragon.name}} Already Has All Toys Available</h5>
+      {% endif %}
+    </div>
+</div>
+<script> 
+  var dateEl = document.getElementById('id_date');
+    M.Datepicker.init(dateEl, {
+      format: 'yyyy-mm-dd',
+      defaultDate: new Date(),
+      setDefaultDate: true,
+      autoClose: true
+    });
+
+  var selectEl = document.getElementById('id_town');
+    M.FormSelect.init(selectEl);
+</script>
+{% endblock %}
